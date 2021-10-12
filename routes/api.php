@@ -18,3 +18,5 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource('users', UserController::class)->only(['store', 'show']);
 
 Route::apiResource('products', ProductController::class)->only(['index', 'show']);
+
+Route::post('/carts', [CartController::class, 'store']);
