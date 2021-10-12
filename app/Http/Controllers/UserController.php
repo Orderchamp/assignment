@@ -14,6 +14,15 @@ class UserController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(User $user)
+    {
+        // @TODO: ensure users can only see their own data
+        return $user;
+    }
+
+    /**
      * Create a new user
      */
     public function store(UserStoreRequest $request)

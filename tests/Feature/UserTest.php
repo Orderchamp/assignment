@@ -16,6 +16,20 @@ class UserTest extends TestCase
 
         $this->user = User::factory()->create();
     }
+
+    public function testGetUser()
+    {
+        $this->get('/api/users/' . $this->user->id)
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJson([
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'address' => $this->user->address,
+                'contact' => $this->user->contact,
+                'email' => $this->user->email,
+            ]);
+    }
+
     public function testCreateNewUser()
     {
         $this->post('/api/users', [
