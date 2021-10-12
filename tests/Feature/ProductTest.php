@@ -69,4 +69,19 @@ class ProductTest extends TestCase
                  ],
              ]);
     }
+
+    public function testFetchOneProductById()
+    {
+        $product = $this->products->first();
+
+        $this->get('/api/products/' . $product->id)
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJson($product->toArray());
+    }
+
+    public function testFetchOneProductByIdWhenProductDoesNotExist()
+    {
+        $this->get('/api/products/abc')
+            ->assertStatus(Response::HTTP_NOT_FOUND);
+    }
 }

@@ -15,4 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::apiResource('products', ProductController::class)->only(['index']);
+Route::apiResource('products', ProductController::class)->only(['index', 'show']);

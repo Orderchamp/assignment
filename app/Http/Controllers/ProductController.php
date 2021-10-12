@@ -14,4 +14,12 @@ class ProductController extends Controller
     {
         return new ResourceCollection(Product::paginate());
     }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
+    {
+        return $product;
+    }
 }
