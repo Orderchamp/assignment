@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\DefaultUserNotFoundException;
 use App\Models\User;
 
 class UserRepository implements UserRepositoryInterface
@@ -15,5 +16,16 @@ class UserRepository implements UserRepositoryInterface
             'email' => $email,
             'password' => $password,
         ]);
+    }
+
+    public function getDefaultUser(): User
+    {
+        $user = User::where(['email' => 'anderson@test.com'])->first();
+
+        if (empty($user)) {
+            throw new DefaultUserNotFoundException();
+        }
+
+        return $user;
     }
 }
