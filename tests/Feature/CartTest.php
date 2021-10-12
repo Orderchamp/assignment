@@ -75,4 +75,48 @@ class CartTest extends TestCase
             ->assertJson(['quantity' => ['The quantity must be at least 1.']]);
     }
 
+    public function testAddProductToCartWhenProductIsOutOfStock()
+    {
+        $this->post('/api/carts/' . $this->cart->key, [
+            'product_id' => $this->productOutOfStock->id,
+            'quantity' => 10,
+        ])
+            ->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson([
+                'message' => 'The quantity you are ordering is not available in stock.',
+            ]);
+    }
+
+    public function testUpdateProductInCartWhenProductRunsOutOfStock()
+    {
+        $this->post('/api/carts/' . $this->cart->key, [
+            'product_id' => $this->productInStock->id,
+            'quantity' => 1,
+        ])
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+
+        $this->get('/api/products/' . $this->productInStock->id)
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonFragment(['stock' => $this->productInStock->stock - 1]);
+
+        $this->post('/api/carts/' . $this->cart->key, [
+            'product_id' => $this->productInStock->id,
+            'quantity' => $this->productInStock->stock,
+        ])
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+
+        $this->get('/api/products/' . $this->productInStock->id)
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonFragment(['stock' => 0]);
+    }
+
+    public function testAddProductToCartWhenProductIsInStock()
+    {
+        $this->post('/api/carts/' . $this->cart->key, [
+            'product_id' => $this->productInStock->id,
+            'quantity' => 95,
+        ])
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+    }
+
 }
