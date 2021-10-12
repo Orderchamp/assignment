@@ -9,6 +9,7 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Providers\CheckoutCompleted;
 
 class CartRepository implements CartRepositoryInterface
 {
@@ -124,6 +125,8 @@ class CartRepository implements CartRepositoryInterface
         $cart->save();
 
         $this->updateTotal($cart);
+
+        event(new CheckoutCompleted($order));
 
         return $order;
     }
