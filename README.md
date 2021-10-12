@@ -2,7 +2,7 @@
 
 # Installation
 
-- `git clone git@github.com:Orderchamp/assignment.git`
+- `git clone git@github.com:AndersonMamede/assignment.git`
 - `cd assignment`
 - `./build-compose.sh`
 
