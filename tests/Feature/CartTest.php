@@ -119,4 +119,32 @@ class CartTest extends TestCase
             ->assertStatus(Response::HTTP_NO_CONTENT);
     }
 
+    public function testCheckoutInvalidCartReturnsNotFound()
+    {
+        $this->post('/api/carts/asdfdsfsdf/checkout')
+            ->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    public function testCheckoutWithoutProductsIsNotAllowed()
+    {
+        $this->post('/api/carts/' . $this->cart->key . '/checkout')
+            ->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson(['message' => 'Cart is empty']);
+    }
+
+    public function testCheckoutCartWithProducts()
+    {
+        $this->post('/api/carts/' . $this->cart->key, [
+            'product_id' => $this->productInStock->id,
+            'quantity' => 2,
+        ])
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+
+        $this->post('/api/carts/' . $this->cart->key . '/checkout')
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+
+        $this->get('/api/carts/' . $this->cart->key)
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonFragment(['status' => 'complete']);
+    }
 }

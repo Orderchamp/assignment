@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\CartIsEmptyException;
 use App\Exceptions\ProductOutOfStockException;
 use App\Http\Requests\CartAddItemRequest;
+use App\Http\Requests\CartCheckoutRequest;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Repositories\CartRepositoryInterface;
@@ -72,4 +74,21 @@ class CartController extends Controller
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * Checkout the cart
+     */
+    public function checkout(Cart $cart, CartCheckoutRequest $request)
+    {
+        try {
+            $user = $this->userRepository->getDefaultUser();
+
+            $couponCode = $request->input('coupon_code');
+
+            $this->cartRepository->checkout($cart, $user, $couponCode);
+        } catch (CartIsEmptyException $e) {
+            return response()->json(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
 }

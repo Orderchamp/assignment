@@ -23,3 +23,4 @@ Route::apiResource('products', ProductController::class)->only(['index', 'show']
 Route::post('/carts', [CartController::class, 'store']);
 Route::get('/carts/{cart:key}', [CartController::class, 'show']);
 Route::post('/carts/{cart:key}', [CartController::class, 'addItem']);
+Route::post('/carts/{cart:key}/checkout', [CartController::class, 'checkout']);

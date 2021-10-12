@@ -2,10 +2,13 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\CartIsEmptyException;
 use App\Exceptions\ProductOutOfStockException;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 
 class CartRepository implements CartRepositoryInterface
 {
@@ -14,8 +17,24 @@ class CartRepository implements CartRepositoryInterface
      */
     private $productRepository;
 
-    public function __construct(?ProductRepositoryInterface $productRepository = null) {
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @var CouponRepositoryInterface
+     */
+    private $couponRepository;
+
+    public function __construct(
+        ?ProductRepositoryInterface $productRepository = null,
+        ?OrderRepositoryInterface $orderRepository = null,
+        ?CouponRepositoryInterface $couponRepository = null
+    ) {
         $this->productRepository = $productRepository ?: (new ProductRepository());
+        $this->orderRepository = $orderRepository ?: (new OrderRepository());
+        $this->couponRepository = $couponRepository ?: (new CouponRepository());
     }
 
     public function create()
@@ -72,6 +91,10 @@ class CartRepository implements CartRepositoryInterface
             return $item->price * $item->quantity;
         });
 
+        if (!empty($cart->coupon)) {
+            $totalPrice = max(0, $totalPrice - $cart->coupon->amount);
+        }
+
         return $totalPrice;
     }
 
@@ -81,4 +104,27 @@ class CartRepository implements CartRepositoryInterface
         $cart->save();
     }
 
+    public function checkout(Cart $cart, User $user, ?string $couponCode = null): Order
+    {
+        if ($cart->items->count() <= 0) {
+            throw new CartIsEmptyException('Cart is empty');
+        }
+
+        $order = $this->orderRepository->create($cart, $user);
+
+        if ($couponCode) {
+            $coupon = $this->couponRepository->getByCode($couponCode);
+            $coupon->used = true;
+            $coupon->save();
+
+            $cart->coupon_id = $coupon->id;
+        }
+
+        $cart->status = 'complete';
+        $cart->save();
+
+        $this->updateTotal($cart);
+
+        return $order;
+    }
 }

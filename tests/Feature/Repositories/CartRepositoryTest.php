@@ -4,13 +4,19 @@ namespace Tests\Feature\Repositories;
 
 use App\Exceptions\ProductOutOfStockException;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Product;
+use App\Providers\CheckoutCompleted;
 use App\Repositories\CartRepository;
 use App\Repositories\ProductRepository;
+use App\Repositories\UserRepository;
 use Tests\TestCase;
 
 class CartRepositoryTest extends TestCase
 {
+    private $defaultUser;
+    private $userRepository;
+    private $coupon;
     private $cartRepository;
     private $cart;
     private $productInStock;
@@ -19,6 +25,11 @@ class CartRepositoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->userRepository = new UserRepository();
+        $this->defaultUser = $this->userRepository->getDefaultUser();
+
+        $this->coupon = Coupon::factory(['amount' => 5])->create();
 
         $this->cartRepository = new CartRepository(new ProductRepository());
         $this->cart = $this->cartRepository->create();
@@ -82,4 +93,30 @@ class CartRepositoryTest extends TestCase
         $this->assertEquals(15, $this->cart->total);
     }
 
+    public function testCheckoutCart()
+    {
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 3);
+        $order = $this->cartRepository->checkout($this->cart, $this->defaultUser);
+
+        $this->assertEquals($this->cart->id, $order->cart_id);
+        $this->assertEquals('complete', $this->cart->status);
+        $this->assertEquals(4.5, $this->cart->total);
+    }
+
+    public function testCheckoutCartWithACoupon()
+    {
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 20);
+        $this->assertEquals(30, $this->cart->total);
+
+        $this->expectsEvents(CheckoutCompleted::class);
+
+        $order = $this->cartRepository->checkout($this->cart, $this->defaultUser, $this->coupon->code);
+
+        $this->coupon->refresh();
+
+        $this->assertEquals($this->cart->id, $order->cart_id);
+        $this->assertEquals('complete', $this->cart->status);
+        $this->assertEquals(25, $this->cart->total);
+        $this->assertEquals(1, $this->coupon->used);
+    }
 }
