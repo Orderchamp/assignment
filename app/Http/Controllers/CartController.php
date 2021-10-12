@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ProductOutOfStockException;
+use App\Http\Requests\CartAddItemRequest;
 use App\Models\Cart;
+use App\Models\Product;
 use App\Repositories\CartRepositoryInterface;
 use App\Repositories\UserRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -39,6 +42,8 @@ class CartController extends Controller
         ];
 
         return response()->json($data, Response::HTTP_CREATED);
+    }
+
     /**
      * Display the specified resource.
      */
@@ -46,4 +51,25 @@ class CartController extends Controller
     {
         return $cart;
     }
+
+    /**
+     * Add items to a cart
+     */
+    public function addItem(Cart $cart, CartAddItemRequest $request)
+    {
+        try {
+            $quantity = $request->input('quantity');
+
+            $product = Product::findOrFail($request->input('product_id'));
+
+            $this->cartRepository->addItem($cart, $product, $quantity);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'The selected product does not exist'], Response::HTTP_NOT_FOUND);
+        } catch (ProductOutOfStockException $e) {
+            return response()->json(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
 }

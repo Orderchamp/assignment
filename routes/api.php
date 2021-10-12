@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -20,3 +21,5 @@ Route::apiResource('users', UserController::class)->only(['store', 'show']);
 Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 
 Route::post('/carts', [CartController::class, 'store']);
+Route::get('/carts/{cart:key}', [CartController::class, 'show']);
+Route::post('/carts/{cart:key}', [CartController::class, 'addItem']);
