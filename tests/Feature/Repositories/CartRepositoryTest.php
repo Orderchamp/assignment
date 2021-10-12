@@ -48,4 +48,19 @@ class CartRepositoryTest extends TestCase
         $this->cartRepository->addItem($this->cart, $this->productOutOfStock, 1);
     }
 
+    public function testProductStockIsUpdatedWhenItemIsAddedToCart()
+    {
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 3);
+
+        $this->assertEquals(97, $this->productInStock->stock);
+    }
+
+    public function testProductStockIsUpdatedWhenTheSameItemIsAddedToCart()
+    {
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 3);
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 5);
+
+        $this->assertEquals(95, $this->productInStock->stock);
+    }
+
 }
