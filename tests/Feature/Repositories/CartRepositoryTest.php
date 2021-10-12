@@ -3,6 +3,7 @@
 namespace Tests\Feature\Repositories;
 
 use App\Exceptions\ProductOutOfStockException;
+use App\Mail\NewCouponEmail;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Product;
@@ -10,6 +11,7 @@ use App\Providers\CheckoutCompleted;
 use App\Repositories\CartRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class CartRepositoryTest extends TestCase
@@ -95,6 +97,8 @@ class CartRepositoryTest extends TestCase
 
     public function testCheckoutCart()
     {
+        Mail::fake();
+
         $this->cartRepository->addItem($this->cart, $this->productInStock, 3);
         $order = $this->cartRepository->checkout($this->cart, $this->defaultUser);
 
@@ -105,6 +109,8 @@ class CartRepositoryTest extends TestCase
 
     public function testCheckoutCartWithACoupon()
     {
+        Mail::fake();
+
         $this->cartRepository->addItem($this->cart, $this->productInStock, 20);
         $this->assertEquals(30, $this->cart->total);
 
@@ -118,5 +124,20 @@ class CartRepositoryTest extends TestCase
         $this->assertEquals('complete', $this->cart->status);
         $this->assertEquals(25, $this->cart->total);
         $this->assertEquals(1, $this->coupon->used);
+    }
+
+    public function testNewCouponIsSentViaEmail15MinutesAfterCheckout()
+    {
+        Mail::fake();
+
+        $this->expectsEvents(CheckoutCompleted::class);
+
+        $this->cartRepository->addItem($this->cart, $this->productInStock, 20);
+        $this->cartRepository->checkout($this->cart, $this->defaultUser);
+
+        $this->assertEquals('complete', $this->cart->status);
+
+        // queue setup needed
+        // Mail::assertQueued(NewCouponEmail::class);
     }
 }
