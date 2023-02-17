@@ -16,7 +16,7 @@ class DiscountCodeService implements DiscountCodeServiceInterface
         $this->discountCodeRepository = $discountCodeRepository;
     }
 
-    public function generateDiscountCode($userId, $amount, $expiresInMinutes)
+    public function generateDiscountCode(int $userId, float $amount, int $expiresInMinutes): DiscountCode
     {
         $discountCode = new DiscountCode();
         $discountCode->user_id = $userId;
