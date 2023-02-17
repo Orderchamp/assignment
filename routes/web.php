@@ -19,8 +19,15 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 Route::get('/', [ProductController::class, 'index'])->name('home');
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::delete('/cart', [CartController::class, 'destroy'])->name('cart.destroy');
-Route::post('/cart/add-product', [CartController::class, 'store'])->name('cart.add');
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+Route::group(['prefix' => 'cart'], function () {
+    Route::get('/', [CartController::class, 'index'])->name('cart.index');
+    Route::delete('/', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/add-product', [CartController::class, 'store'])->name('cart.add');
+});
+
+Route::group(['prefix' => 'checkout'], function () {
+    Route::get('/', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/', [CheckoutController::class, 'store'])->name('checkout.store');
+});
+
