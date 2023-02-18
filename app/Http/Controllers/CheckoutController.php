@@ -6,14 +6,12 @@ use App\Domain\Cart\Services\CartItemServiceInterface;
 use App\Domain\Checkout\Services\CheckoutServiceInterface;
 use App\Domain\Order\Services\OrderServiceInterface;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
+use App\Domain\User\Services\UserServiceInterface;
 use App\Http\Requests\CheckoutRequest;
-use App\Models\User;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class CheckoutController extends Controller
 {
@@ -47,19 +45,12 @@ class CheckoutController extends Controller
         return view('checkout.index', ['products' => $checkoutData['products'], 'total' => $checkoutData['total']]);
     }
 
-    public function store(CheckoutRequest $request): RedirectResponse
+    public function store(CheckoutRequest $request, UserServiceInterface $userService): RedirectResponse
     {
         if ($request->input('has-password') === 'on') {
-            try {
-                $userCreated = User::create([
-                    'name' => $request->input('name'),
-                    'email' => $request->input('email'),
-                    'password' => Hash::make($request->input('password')),
-                ]);
 
-                Auth::login($userCreated);
-            } catch (\Exception $exception) {
-                return redirect()->back()->withErrors(['msg', 'Could not register user while creating cart.']);
+            if (!$userService->createAndLoginUser($request)) {
+                return redirect()->route('home')->with('error', 'Could not register user while creating cart.');
             }
         }
 
