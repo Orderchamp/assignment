@@ -128,7 +128,7 @@
                         </div>
                     @endif
                     <div class="mb-4"></div>
-                    <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to checkout</button>
+                    <button class="btn btn-primary btn-lg btn-block" type="submit">Complete order</button>
                 </form>
             </div>
         </div>
