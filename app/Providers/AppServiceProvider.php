@@ -22,6 +22,10 @@ use App\Domain\Product\Repositories\ProductRepository;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Domain\Product\Services\ProductService;
 use App\Domain\Product\Services\ProductServiceInterface;
+use App\Domain\User\Repositories\UserRepository;
+use App\Domain\User\Repositories\UserRepositoryInterface;
+use App\Domain\User\Services\UserService;
+use App\Domain\User\Services\UserServiceInterface;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -49,6 +53,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DiscountCodeServiceInterface::class, DiscountCodeService::class);
 
         $this->app->bind(CheckoutServiceInterface::class, CheckoutService::class);
+
+        $this->app->bind(UserServiceInterface::class, UserService::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
     }
 
     /**
