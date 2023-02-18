@@ -27,9 +27,13 @@ class CheckoutController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function index(): Factory|View|Application
+    public function index(): Factory|View|Application|RedirectResponse
     {
         $cartItems = $this->cartItemService->getAllCartItems()->groupBy('product_id');
+
+        if ($cartItems->count() === 0) {
+            return redirect()->route('home')->with('error', 'You need to add items to your cart before checking out.');
+        }
 
         $products = [];
         $total = 0;
