@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Product\Services\ProductServiceInterface;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 
 class ProductController extends Controller
 {
@@ -13,7 +16,7 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index()
+    public function index(): Factory|View|Application
     {
         return view('products.index', ['products' => $this->productService->getAllProducts(9)]);
     }
