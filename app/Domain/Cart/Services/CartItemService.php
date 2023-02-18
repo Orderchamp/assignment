@@ -26,10 +26,9 @@ class CartItemService implements CartItemServiceInterface
 
     public function getTotalPrice(): float|int
     {
-        $cartItems = $this->cartItemRepository->getAll();
         $totalPrice = 0;
 
-        foreach ($cartItems as $cartItem) {
+        foreach ($this->getAllCartItems() as $cartItem) {
             $totalPrice += $cartItem?->product?->price * $cartItem->quantity;
         }
 
