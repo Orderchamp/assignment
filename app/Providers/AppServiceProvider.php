@@ -6,8 +6,12 @@ use App\Domain\Cart\Repositories\CartItemRepository;
 use App\Domain\Cart\Repositories\CartItemRepositoryInterface;
 use App\Domain\Cart\Services\CartItemService;
 use App\Domain\Cart\Services\CartItemServiceInterface;
+use App\Domain\Checkout\Services\CheckoutService;
+use App\Domain\Checkout\Services\CheckoutServiceInterface;
 use App\Domain\DiscountCode\Repositories\DiscountCodeRepository;
 use App\Domain\DiscountCode\Repositories\DiscountCodeRepositoryInterface;
+use App\Domain\DiscountCode\Services\DiscountCodeService;
+use App\Domain\DiscountCode\Services\DiscountCodeServiceInterface;
 use App\Domain\Order\Repositories\OrderItemRepository;
 use App\Domain\Order\Repositories\OrderItemRepositoryInterface;
 use App\Domain\Order\Repositories\OrderRepository;
@@ -43,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(DiscountCodeRepositoryInterface::class, DiscountCodeRepository::class);
         $this->app->bind(DiscountCodeServiceInterface::class, DiscountCodeService::class);
+
+        $this->app->bind(CheckoutServiceInterface::class, CheckoutService::class);
     }
 
     /**
