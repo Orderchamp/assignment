@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Cart\Services\CartItemServiceInterface;
+use App\Domain\Checkout\Services\CheckoutServiceInterface;
 use App\Domain\Order\Services\OrderServiceInterface;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Http\Requests\CheckoutRequest;
@@ -19,12 +20,18 @@ class CheckoutController extends Controller
     protected CartItemServiceInterface $cartItemService;
     protected ProductRepositoryInterface $productRepository;
     protected OrderServiceInterface $orderService;
+    protected CheckoutServiceInterface $checkoutService;
 
-    public function __construct(CartItemServiceInterface $cartItemService, ProductRepositoryInterface $productRepository, OrderServiceInterface $orderService)
-    {
+    public function __construct(
+        CartItemServiceInterface $cartItemService,
+        ProductRepositoryInterface $productRepository,
+        OrderServiceInterface $orderService,
+        CheckoutServiceInterface $checkoutService
+    ) {
         $this->cartItemService = $cartItemService;
         $this->productRepository = $productRepository;
         $this->orderService = $orderService;
+        $this->checkoutService = $checkoutService;
     }
 
     public function index(): Factory|View|Application|RedirectResponse
@@ -35,18 +42,9 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'You need to add items to your cart before checking out.');
         }
 
-        $products = [];
-        $total = 0;
+        $checkoutData = $this->checkoutService->getProductsForCheckout($cartItems, $this->productRepository);
 
-        foreach ($cartItems as $productId => $cartItem) {
-            $product = $this->productRepository->getById($cartItem->first()->product_id);
-            $product->quantity = $cartItem->sum('quantity');
-            $product->total = $cartItem->sum('quantity') * $product->price;
-            $total += $product->total;
-            $products[] = $product;
-        }
-
-        return view('checkout.index', compact('products', 'total'));
+        return view('checkout.index', ['products' => $checkoutData['products'], 'total' => $checkoutData['total']]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
