@@ -2,14 +2,22 @@
 
 namespace App\Domain\User\Services;
 
+use App\Domain\Cart\Services\CartItemServiceInterface;
 use App\Domain\User\Models\User;
 use App\Http\Requests\CheckoutRequest;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 
 class UserService implements UserServiceInterface
 {
+    private CartItemServiceInterface $cartItemService;
+
+    public function __construct(CartItemServiceInterface $cartItemService)
+    {
+        $this->cartItemService = $cartItemService;
+    }
 
     public function createAndLoginUser(CheckoutRequest $request): bool
     {
@@ -23,6 +31,8 @@ class UserService implements UserServiceInterface
 
         if ($createdUser !== null) {
             $this->loginUser($createdUser);
+
+            $this->cartItemService->reassignCartItemsToLoggedInUser(Cookie::get('guest_cart_id'));
 
             return true;
         }

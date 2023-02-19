@@ -3,8 +3,6 @@
 namespace App\Domain\Order\Listeners;
 
 use App\Domain\Order\Events\OrderCreated;
-use App\Domain\Order\Models\OrderItem;
-use App\Domain\Product\Models\Product;
 use App\Domain\Product\Services\ProductServiceInterface;
 
 class ReduceProductQuantity
@@ -18,12 +16,10 @@ class ReduceProductQuantity
 
     public function handle(OrderCreated $event): void
     {
-        $order = $event->order;
-        $orderItems = OrderItem::where('order_id', $order->id)->get();
-        $reduceBy = $orderItems->sum('quantity');
-        $product = Product::find($orderItems->first()->product_id);
+        foreach ($event->data as $product) {
 
-        $this->productService->reduceProductQuantity($product, $reduceBy);
+            $this->productService->reduceProductQuantity($product['productObject'], $product['quantityToReduceBy']);
+        }
     }
 }
 

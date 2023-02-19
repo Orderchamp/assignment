@@ -21,7 +21,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function getById(int $id): ?Product
     {
-        return $this->productModel::find($id);
+        return $this->productModel::findOrFail($id);
     }
 
     public function update(Product $product, array $data): Product

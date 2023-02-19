@@ -19,9 +19,9 @@ class CartItemRepository implements CartItemRepositoryInterface
         return $this->cartItemModel->find($id);
     }
 
-    public function update(CartItem $cartItem): CartItem
+    public function update(CartItem $cartItem, array $data): CartItem
     {
-        $cartItem->save();
+        $cartItem->update($data);
 
         return $cartItem;
     }
@@ -48,9 +48,15 @@ class CartItemRepository implements CartItemRepositoryInterface
         return $this->cartItemModel->where('user_id', $userId)->get();
     }
 
-    public function deleteByGuestCartId(string $guestCartId): void
+    public function deleteByGuestCartId(string $guestCartId, int $productId = null): void
     {
-        $this->cartItemModel->where('guest_cart_id', $guestCartId)->delete();
+        $cartItemModel = $this->cartItemModel->where('guest_cart_id', $guestCartId);
+
+        if (!is_null($productId)) {
+            $cartItemModel->where('product_id', $productId);
+        }
+
+        $cartItemModel->delete();
     }
 
     public function delete(CartItem $cartItem): void
@@ -58,8 +64,14 @@ class CartItemRepository implements CartItemRepositoryInterface
         $cartItem->delete();
     }
 
-    public function deleteByUserId(int $userId): void
+    public function deleteByUserId(int $userId, int $productId = null): void
     {
-        $this->cartItemModel->where('user_id', $userId)->delete();
+        $cartItemModel = $this->cartItemModel->where('user_id', $userId);
+
+        if (!is_null($productId)) {
+            $cartItemModel->where('product_id', $productId);
+        }
+
+        $cartItemModel->delete();
     }
 }

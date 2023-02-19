@@ -11,7 +11,7 @@ interface CartItemRepositoryInterface
 
     public function getById(int $id): ?CartItem;
 
-    public function update(CartItem $cartItem): CartItem;
+    public function update(CartItem $cartItem, array $data): CartItem;
 
     public function delete(CartItem $cartItem): void;
 
@@ -21,7 +21,7 @@ interface CartItemRepositoryInterface
 
     public function getByUserId(string $userId): Collection;
 
-    public function deleteByGuestCartId(string $guestCartId): void;
+    public function deleteByGuestCartId(string $guestCartId, int $productId = null): void;
 
-    public function deleteByUserId(int $userId): void;
+    public function deleteByUserId(int $userId, int $productId = null): void;
 }

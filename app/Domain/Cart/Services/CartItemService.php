@@ -35,12 +35,23 @@ class CartItemService implements CartItemServiceInterface
         return $totalPrice;
     }
 
-    public function deleteCartItem(int $cartItemId): void
+    public function deleteCartItem(int $cartItemId = null): void
     {
         if (auth()->check()) {
-            $this->cartItemRepository->deleteByUserId(auth()->id());
+            $this->cartItemRepository->deleteByUserId(auth()->id(), $cartItemId);
         }
 
-        $this->cartItemRepository->deleteByGuestCartId(Cookie::get('guest_cart_id'));
+        $this->cartItemRepository->deleteByGuestCartId(Cookie::get('guest_cart_id'), $cartItemId);
+    }
+
+    public function reassignCartItemsToLoggedInUser(string $guestCartId): void
+    {
+        foreach ($this->cartItemRepository->getByGuestCartId($guestCartId) as $cartItem) {
+
+            $this->cartItemRepository->update($cartItem, [
+                'user_id' => auth()->id(),
+                'guest_cart_id' => null,
+            ]);
+        }
     }
 }

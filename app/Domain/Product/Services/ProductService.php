@@ -26,10 +26,11 @@ class ProductService implements ProductServiceInterface
      */
     public function reduceProductQuantity(Product $product, int $reduceBy): Product
     {
-        $proposedQuantity = $product->quantity - $reduceBy;
+        $productQuantity = $product->quantity;
+        $proposedQuantity = $productQuantity - $reduceBy;
 
         if ($proposedQuantity < 0) {
-            throw new OrderQuantityMoreThanStockException($reduceBy);
+            throw new OrderQuantityMoreThanStockException($reduceBy, $productQuantity);
         }
 
         return $this->productRepository->update($product, ['quantity' => $proposedQuantity]);

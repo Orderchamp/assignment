@@ -9,6 +9,7 @@ use App\Domain\Order\Events\OrderCreated;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Models\OrderContactInfo;
 use App\Domain\Order\Repositories\OrderRepositoryInterface;
+use App\Domain\Product\Models\Product;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Http\Requests\CheckoutRequest;
 
@@ -39,14 +40,16 @@ class OrderService implements OrderServiceInterface
     {
         $cartItems = $this->cartItemService->getAllCartItems();
         $product = $this->productRepository->getById($cartItems->first()->product_id);
+        $products = Product::whereIn('id', $cartItems->pluck('product_id'))->get(); // make repo method
+        $productsKeyedByProductIdWithQuantities = $products->pluck('quantity', 'id')->toArray(); // make repo method
+        $summedQuantities = $cartItems->groupBy('product_id')->map(fn($group) => $group->sum('quantity'))->toArray(); // make repo method
 
         $orderItems = [];
-        $cartItemQuantities = 0;
+        $prepareEventData = [];
 
         foreach ($cartItems as $cartItem) {
 
             if ($product) {
-                $cartItemQuantities += $cartItem->quantity;
 
                 $orderItems[] = [
                     'product_id' => $product->id,
@@ -56,12 +59,20 @@ class OrderService implements OrderServiceInterface
             }
         }
 
-        if ($product->quantity === 0) {
-            throw new ProductOutOfStockException();
-        }
+        foreach ($products as $p) {
 
-        if ($cartItemQuantities > $product->quantity) {
-            throw new OrderQuantityMoreThanStockException($cartItemQuantities);
+            if ($p->quantity === 0) {
+                throw new ProductOutOfStockException();
+            }
+
+            if ($summedQuantities[$p->id] > $productsKeyedByProductIdWithQuantities[$p->id]) {
+                throw new OrderQuantityMoreThanStockException($summedQuantities[$p->id], $productsKeyedByProductIdWithQuantities[$p->id]);
+            }
+
+            $prepareEventData[$p->id] = [
+                'productObject' => $p,
+                'quantityToReduceBy' => $summedQuantities[$p->id],
+            ];
         }
 
         $orderData = [
@@ -74,7 +85,7 @@ class OrderService implements OrderServiceInterface
         $this->orderRepository->save($order);
         $this->orderItemService->createOrderItemsFromCartItems($cartItems, $order);
 
-        event(new OrderCreated($order));
+        event(new OrderCreated($order, $prepareEventData));
 
         $orderContactInfo = $request->validated();
 

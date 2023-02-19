@@ -10,5 +10,7 @@ interface CartItemServiceInterface
 
     public function getTotalPrice(): float|int;
 
-    public function deleteCartItem(int $cartItemId): void;
+    public function deleteCartItem(int $cartItemId = null): void;
+
+    public function reassignCartItemsToLoggedInUser(string $guestCartId): void;
 }
