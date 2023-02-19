@@ -59,8 +59,6 @@ class CheckoutController extends Controller
         try {
             $this->orderService->createOrder($request);
 
-            //$this->cartItemService->deleteAllCartItems();
-
             return redirect()->route('home')->with('success', 'Order completed!');
         } catch (ProductOutOfStockException|OrderQuantityMoreThanStockException $e) {
             return redirect()->route('home')->with('error', $e->getMessage());
