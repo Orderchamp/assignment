@@ -3,24 +3,70 @@
 namespace App\Domain\Order\Services;
 
 use App\Domain\Cart\Services\CartItemServiceInterface;
+use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
+use App\Domain\Exceptions\ProductOutOfStockException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Models\OrderContactInfo;
 use App\Domain\Order\Models\OrderItem;
 use App\Domain\Order\Repositories\OrderRepositoryInterface;
+use App\Domain\Product\Repositories\ProductRepositoryInterface;
+use App\Http\Requests\CheckoutRequest;
 
 class OrderService implements OrderServiceInterface
 {
     private OrderRepositoryInterface $orderRepository;
     private CartItemServiceInterface $cartItemService;
+    private ProductRepositoryInterface $productRepository;
 
-    public function __construct(OrderRepositoryInterface $orderRepository, CartItemServiceInterface $cartItemService)
-    {
+    public function __construct(
+        OrderRepositoryInterface $orderRepository,
+        CartItemServiceInterface $cartItemService,
+        ProductRepositoryInterface $productRepository,
+    ) {
         $this->orderRepository = $orderRepository;
         $this->cartItemService = $cartItemService;
+        $this->productRepository = $productRepository;
     }
 
-    public function createOrder(array $orderData, array $cartItems, array $orderContactInfo): Order
+    /**
+     * @throws ProductOutOfStockException
+     * @throws OrderQuantityMoreThanStockException
+     */
+    public function createOrder(CheckoutRequest $request): Order
     {
+        $cartItems = $this->cartItemService->getAllCartItems();
+        $product = $this->productRepository->getById($cartItems->first()->product_id);
+
+        $orderItems = [];
+        $cartItemQuantities = 0;
+
+        foreach ($cartItems as $cartItem) {
+
+            if ($product) {
+                $cartItemQuantities += $cartItem->quantity;
+
+                $orderItems[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $product->price,
+                ];
+            }
+        }
+
+        if ($product->quantity === 0) {
+            throw new ProductOutOfStockException();
+        }
+
+        if ($cartItemQuantities > $product->quantity) {
+            throw new OrderQuantityMoreThanStockException($cartItemQuantities);
+        }
+
+        $orderData = [
+            'user_id' => auth()->check() ? auth()->id() : 0,
+            'guest_email' => auth()->check() ? null : $request->validated('email'),
+            'total_price' => collect($orderItems)->sum('price'),
+        ];
+
         $order = new Order($orderData);
         $this->orderRepository->save($order);
 
@@ -36,6 +82,8 @@ class OrderService implements OrderServiceInterface
 
             $this->cartItemService->deleteCartItem($cartItem['id']);
         }
+
+        $orderContactInfo = $request->validated();
 
         // Should move this into service, no time though.
         $orderContactModel = new OrderContactInfo();

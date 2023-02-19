@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Cart\Services\CartItemServiceInterface;
 use App\Domain\Checkout\Services\CheckoutServiceInterface;
+use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
+use App\Domain\Exceptions\ProductOutOfStockException;
 use App\Domain\Order\Services\OrderServiceInterface;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Domain\User\Services\UserServiceInterface;
@@ -54,38 +56,14 @@ class CheckoutController extends Controller
             }
         }
 
-        $cartItems = $this->cartItemService->getAllCartItems();
+        try {
+            $this->orderService->createOrder($request);
 
-        $orderItems = [];
+            //$this->cartItemService->deleteAllCartItems();
 
-        foreach ($cartItems as $cartItem) {
-            try {
-                $product = $this->productRepository->getById($cartItem->product_id);
-            } catch (\Exception $e) {
-                return redirect()->back()->withErrors(['msg', 'Product not found']);
-            }
-
-            if ($cartItem->quantity > $product->quantity) {
-                return redirect()->back()->withErrors(['msg', 'Product ' . $product->name . ' only has ' . $product->quantity . ' available in stock.']);
-            }
-
-            $orderItems[] = [
-                'product_id' => $product->id,
-                'quantity' => $cartItem->quantity,
-                'price' => $product->price,
-            ];
+            return redirect()->route('home')->with('success', 'Order completed!');
+        } catch (ProductOutOfStockException|OrderQuantityMoreThanStockException $e) {
+            return redirect()->route('home')->with('error', $e->getMessage());
         }
-
-        $orderData = [
-            'user_id' => auth()->check() ? auth()->id() : 0,
-            'guest_email' => auth()->check() ? null : $request->validated('email'),
-            'total_price' => collect($orderItems)->sum('price'),
-        ];
-
-        $this->orderService->createOrder($orderData, $cartItems->toArray(), $request->validated());
-
-        //$this->cartItemService->deleteAllCartItems();
-
-        return redirect()->route('home')->with('success', 'Order completed!');
     }
 }
