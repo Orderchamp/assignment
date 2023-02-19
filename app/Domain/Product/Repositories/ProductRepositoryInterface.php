@@ -10,4 +10,6 @@ interface ProductRepositoryInterface
     public function getAll(): LengthAwarePaginator;
 
     public function getById(int $id): ?Product;
+
+    public function update(Product $product, array $data): Product;
 }

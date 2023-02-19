@@ -16,6 +16,8 @@ use App\Domain\Order\Repositories\OrderItemRepository;
 use App\Domain\Order\Repositories\OrderItemRepositoryInterface;
 use App\Domain\Order\Repositories\OrderRepository;
 use App\Domain\Order\Repositories\OrderRepositoryInterface;
+use App\Domain\Order\Services\OrderItemService;
+use App\Domain\Order\Services\OrderItemServiceInterface;
 use App\Domain\Order\Services\OrderService;
 use App\Domain\Order\Services\OrderServiceInterface;
 use App\Domain\Product\Repositories\ProductRepository;
@@ -46,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CartItemServiceInterface::class, CartItemService::class);
 
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
+        $this->app->bind(OrderItemServiceInterface::class, OrderItemService::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(OrderItemRepositoryInterface::class, OrderItemRepository::class);
 

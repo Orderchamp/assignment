@@ -7,13 +7,27 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository implements ProductRepositoryInterface
 {
+    protected Product $productModel;
+
+    public function __construct(Product $productModel)
+    {
+        $this->productModel = $productModel;
+    }
+
     public function getAll(int $perPage = 10): LengthAwarePaginator
     {
-        return Product::paginate($perPage);
+        return $this->productModel::paginate($perPage);
     }
 
     public function getById(int $id): ?Product
     {
-        return Product::find($id);
+        return $this->productModel::find($id);
+    }
+
+    public function update(Product $product, array $data): Product
+    {
+        $product->update($data);
+
+        return $product;
     }
 }

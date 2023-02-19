@@ -5,9 +5,9 @@ namespace App\Domain\Order\Services;
 use App\Domain\Cart\Services\CartItemServiceInterface;
 use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
 use App\Domain\Exceptions\ProductOutOfStockException;
+use App\Domain\Order\Events\OrderCreated;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Models\OrderContactInfo;
-use App\Domain\Order\Models\OrderItem;
 use App\Domain\Order\Repositories\OrderRepositoryInterface;
 use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Http\Requests\CheckoutRequest;
@@ -15,15 +15,18 @@ use App\Http\Requests\CheckoutRequest;
 class OrderService implements OrderServiceInterface
 {
     private OrderRepositoryInterface $orderRepository;
+    private OrderItemServiceInterface $orderItemService;
     private CartItemServiceInterface $cartItemService;
     private ProductRepositoryInterface $productRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
+        OrderItemServiceInterface $orderItemService,
         CartItemServiceInterface $cartItemService,
         ProductRepositoryInterface $productRepository,
     ) {
         $this->orderRepository = $orderRepository;
+        $this->orderItemService = $orderItemService;
         $this->cartItemService = $cartItemService;
         $this->productRepository = $productRepository;
     }
@@ -69,23 +72,13 @@ class OrderService implements OrderServiceInterface
 
         $order = new Order($orderData);
         $this->orderRepository->save($order);
+        $this->orderItemService->createOrderItemsFromCartItems($cartItems, $order);
 
-        foreach ($cartItems as $cartItem) {
-
-            // Should move this into service, no time though.
-            $orderItem = new OrderItem();
-            $orderItem->order_id = $order->id;
-            $orderItem->product_id = $cartItem['product_id'];
-            $orderItem->quantity = $cartItem['quantity'];
-            $orderItem->price = $cartItem['price'];
-            $orderItem->save();
-
-            $this->cartItemService->deleteCartItem($cartItem['id']);
-        }
+        event(new OrderCreated($order));
 
         $orderContactInfo = $request->validated();
 
-        // Should move this into service, no time though.
+        // Should move this into service, no time though. +event
         $orderContactModel = new OrderContactInfo();
         $orderContactModel->order_id = $order->id;
         $orderContactModel->address = $orderContactInfo['address'];
