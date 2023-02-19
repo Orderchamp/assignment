@@ -11,6 +11,4 @@ interface CartItemServiceInterface
     public function getTotalPrice(): float|int;
 
     public function deleteCartItem(int $cartItemId): void;
-
-    public function deleteAllCartItems(int $cartItemId): void;
 }

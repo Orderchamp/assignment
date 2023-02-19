@@ -48,9 +48,9 @@ class CartItemRepository implements CartItemRepositoryInterface
         return $this->cartItemModel->where('user_id', $userId)->get();
     }
 
-    public function deleteByGuestCartAndCartItemId(string $guestCartId, int $cartItemId): void
+    public function deleteByGuestCartId(string $guestCartId): void
     {
-        $this->cartItemModel->where('guest_cart_id', $guestCartId)->where('product_id', $cartItemId)->delete();
+        $this->cartItemModel->where('guest_cart_id', $guestCartId)->delete();
     }
 
     public function delete(CartItem $cartItem): void
@@ -58,8 +58,8 @@ class CartItemRepository implements CartItemRepositoryInterface
         $cartItem->delete();
     }
 
-    public function deleteByUserAndCartItemId(int $userId, int $cartItemId): void
+    public function deleteByUserId(int $userId): void
     {
-        $this->cartItemModel->where('user_id', $userId)->where('product_id', $cartItemId)->delete();
+        $this->cartItemModel->where('user_id', $userId)->delete();
     }
 }

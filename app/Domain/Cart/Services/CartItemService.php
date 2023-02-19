@@ -38,15 +38,9 @@ class CartItemService implements CartItemServiceInterface
     public function deleteCartItem(int $cartItemId): void
     {
         if (auth()->check()) {
-            $this->cartItemRepository->deleteByUserAndCartItemId(auth()->id(), $cartItemId);
+            $this->cartItemRepository->deleteByUserId(auth()->id());
         }
 
-        $this->cartItemRepository->deleteByGuestCartAndCartItemId(Cookie::get('guest_cart_id'), $cartItemId);
-    }
-
-
-    public function deleteAllCartItems(int $cartItemId): void
-    {
-        // TODO: Implement deleteAllCartItems() method.
+        $this->cartItemRepository->deleteByGuestCartId(Cookie::get('guest_cart_id'));
     }
 }
