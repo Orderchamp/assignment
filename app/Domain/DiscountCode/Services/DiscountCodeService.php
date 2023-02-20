@@ -16,16 +16,16 @@ class DiscountCodeService implements DiscountCodeServiceInterface
         $this->discountCodeRepository = $discountCodeRepository;
     }
 
-    public function generateDiscountCode(int $userId, float $amount, int $expiresInMinutes): DiscountCode
+    public function generateDiscountCode(Order $order, float $amount): DiscountCode
     {
-        $discountCode = new DiscountCode();
-        $discountCode->user_id = $userId;
-        $discountCode->amount = $amount;
-        $discountCode->expires_at = now()->addMinutes($expiresInMinutes);
-        $discountCode->code = Str::random(10);
-        $discountCode->save();
+        $discountCodeData = [
+            'order_id' => $order->id,
+            'user_id' => $order->user_id,
+            'discount_amount' => $amount,
+            'code' => Str::random(10),
+        ];
 
-        return $discountCode;
+        return $this->discountCodeRepository->createDiscountCode($discountCodeData);
     }
 
     public function applyDiscountCode(Order $order, string $code): void

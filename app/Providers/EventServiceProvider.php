@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\DiscountCode\Listeners\DispatchDiscountCode;
 use App\Domain\Order\Events\OrderCreated;
 use App\Domain\Order\Events\OrderItemCreated;
 use App\Domain\Order\Listeners\DeleteCartItem;
@@ -24,6 +25,7 @@ class EventServiceProvider extends ServiceProvider
 
         OrderCreated::class => [
             ReduceProductQuantity::class,
+            DispatchDiscountCode::class,
         ],
 
         OrderItemCreated::class => [

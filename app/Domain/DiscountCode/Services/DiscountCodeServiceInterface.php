@@ -7,7 +7,7 @@ use App\Domain\Order\Models\Order;
 
 interface DiscountCodeServiceInterface
 {
-    public function generateDiscountCode(int $userId, float $amount, int $expiresInMinutes): DiscountCode;
+    public function generateDiscountCode(Order $order, float $amount): DiscountCode;
 
     public function applyDiscountCode(Order $order, string $code): void;
 }
