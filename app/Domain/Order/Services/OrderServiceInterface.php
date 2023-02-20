@@ -2,6 +2,7 @@
 
 namespace App\Domain\Order\Services;
 
+use App\Domain\Exceptions\CannotApplyDiscountException;
 use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
 use App\Domain\Exceptions\ProductOutOfStockException;
 use App\Domain\Order\Models\Order;
@@ -15,6 +16,7 @@ interface OrderServiceInterface
      *
      * @throws ProductOutOfStockException
      * @throws OrderQuantityMoreThanStockException
+     * @throws CannotApplyDiscountException
      */
     public function createOrder(CheckoutRequest $request): Order;
 }

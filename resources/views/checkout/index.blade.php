@@ -40,10 +40,15 @@
 
                 <form class="card p-2">
                     <div class="input-group">
-                        <input disabled type="text" class="form-control" placeholder="Promo code"">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-secondary">Redeem</button>
-                        </div>
+                        <form action="{{ route('discount_code.apply') }}" method="POST">
+                            @csrf
+                            @method('POST')
+                            <input type="text" value="{{ old('discount_code') ?? '' }}" name="discount_code" id="discount_code" class="form-control" placeholder="Discount code">
+
+                            <div class="input-group-append">
+                                <button id="redeem-code-btn" type="submit" class="btn btn-secondary">Redeem</button>
+                            </div>
+                        </form>
                     </div>
                 </form>
             </div>
@@ -51,6 +56,7 @@
                 <h4 class="mb-3">Billing Information</h4>
                 <form action="{{ route('checkout.store') }}" novalidate method="POST">
                     @csrf
+                    <input type="hidden" id="discount_code_hidden" name="discount_code_hidden" value="">
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label for="name">Name</label>

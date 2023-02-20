@@ -24,6 +24,7 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'discount_code_hidden' => 'string|exists:discount_codes,code',
             'name' => 'required|string',
             'email' => 'required|email',
             'password' => 'nullable',

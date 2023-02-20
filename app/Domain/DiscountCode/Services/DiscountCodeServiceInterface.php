@@ -9,5 +9,5 @@ interface DiscountCodeServiceInterface
 {
     public function generateDiscountCode(Order $order, float $amount): DiscountCode;
 
-    public function applyDiscountCode(Order $order, string $code): void;
+    public function validateDiscountCode(string $code): bool;
 }

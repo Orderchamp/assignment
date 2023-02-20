@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->unsignedDecimal('discount_amount', 8, 2);
             $table->string('code');
             $table->boolean('is_used')->default(false);
-            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('order_id')->nullable();
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
             $table->timestamps();
         });

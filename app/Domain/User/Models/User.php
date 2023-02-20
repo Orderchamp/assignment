@@ -2,6 +2,7 @@
 
 namespace App\Domain\User\Models;
 
+use App\Domain\DiscountCode\Models\DiscountCode;
 use App\Domain\Order\Models\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,5 +17,10 @@ class User extends \App\Models\User
     public function orders(): ?HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function discount_codes(): HasMany
+    {
+        return $this->hasMany(DiscountCode::class);
     }
 }

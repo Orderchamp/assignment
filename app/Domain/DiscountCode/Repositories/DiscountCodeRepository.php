@@ -3,6 +3,7 @@
 namespace App\Domain\DiscountCode\Repositories;
 
 use App\Domain\DiscountCode\Models\DiscountCode;
+use App\Domain\Order\Models\Order;
 
 class DiscountCodeRepository implements DiscountCodeRepositoryInterface
 {
@@ -18,15 +19,21 @@ class DiscountCodeRepository implements DiscountCodeRepositoryInterface
         return $this->discountCodeModel->create($data);
     }
 
-    public function findDiscountCodeByCode(string $code): ?DiscountCode
+    public function findDiscountCodeByCode(string $code): DiscountCode
     {
         return $this->discountCodeModel->where('code', $code)->firstOrFail();
     }
 
-    public function markDiscountCodeAsUsed(string $code): void
+    public function findDiscountCodeByStatusAndId(string $code): ?DiscountCode
+    {
+        return $this->discountCodeModel->where('code', $code)->where('is_used', 0)->first();
+    }
+
+    public function markDiscountCodeAsUsed(Order $order, string $code): void
     {
         $discountCode = $this->findDiscountCodeByCode($code);
         $discountCode->is_used = true;
+        $discountCode->order_id = $order->id;
         $discountCode->save();
     }
 }

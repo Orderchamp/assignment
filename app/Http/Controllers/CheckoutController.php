@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Cart\Services\CartItemServiceInterface;
 use App\Domain\Checkout\Services\CheckoutServiceInterface;
+use App\Domain\Exceptions\CannotApplyDiscountException;
 use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
 use App\Domain\Exceptions\ProductOutOfStockException;
 use App\Domain\Order\Services\OrderServiceInterface;
@@ -60,7 +61,7 @@ class CheckoutController extends Controller
             $this->orderService->createOrder($request);
 
             return redirect()->route('home')->with('success', 'Order completed!');
-        } catch (ProductOutOfStockException|OrderQuantityMoreThanStockException $e) {
+        } catch (ProductOutOfStockException|OrderQuantityMoreThanStockException|CannotApplyDiscountException $e) {
             return redirect()->route('home')->with('error', $e->getMessage());
         }
     }

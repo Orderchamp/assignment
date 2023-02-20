@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -31,3 +32,4 @@ Route::group(['prefix' => 'checkout'], function () {
     Route::post('/', [CheckoutController::class, 'store'])->name('checkout.store');
 });
 
+Route::post('discount_code/apply', [DiscountCodeController::class, 'apply'])->name('discount_code.apply');

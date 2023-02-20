@@ -3,6 +3,8 @@
 namespace App\Domain\Order\Services;
 
 use App\Domain\Cart\Services\CartItemServiceInterface;
+use App\Domain\DiscountCode\Repositories\DiscountCodeRepositoryInterface;
+use App\Domain\Exceptions\CannotApplyDiscountException;
 use App\Domain\Exceptions\OrderQuantityMoreThanStockException;
 use App\Domain\Exceptions\ProductOutOfStockException;
 use App\Domain\Order\Events\OrderCreated;
@@ -19,22 +21,26 @@ class OrderService implements OrderServiceInterface
     private OrderItemServiceInterface $orderItemService;
     private CartItemServiceInterface $cartItemService;
     private ProductRepositoryInterface $productRepository;
+    private DiscountCodeRepositoryInterface $discountCodeRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderItemServiceInterface $orderItemService,
         CartItemServiceInterface $cartItemService,
         ProductRepositoryInterface $productRepository,
+        DiscountCodeRepositoryInterface $discountCodeRepository,
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemService = $orderItemService;
         $this->cartItemService = $cartItemService;
         $this->productRepository = $productRepository;
+        $this->discountCodeRepository = $discountCodeRepository;
     }
 
     /**
      * @throws ProductOutOfStockException
      * @throws OrderQuantityMoreThanStockException
+     * @throws CannotApplyDiscountException
      */
     public function createOrder(CheckoutRequest $request): Order
     {
@@ -43,6 +49,7 @@ class OrderService implements OrderServiceInterface
         $products = Product::whereIn('id', $cartItems->pluck('product_id'))->get(); // make repo method
         $productsKeyedByProductIdWithQuantities = $products->pluck('quantity', 'id')->toArray(); // make repo method
         $summedQuantities = $cartItems->groupBy('product_id')->map(fn($group) => $group->sum('quantity'))->toArray(); // make repo method
+        $discountCodeRequest = $request->validated('discount_code_hidden');
 
         $orderItems = [];
         $prepareEventData = [];
@@ -81,11 +88,24 @@ class OrderService implements OrderServiceInterface
             'total_price' => collect($orderItems)->sum('price'),
         ];
 
+        if ($discountCodeRequest) {
+            $discountCode = $this->discountCodeRepository->findDiscountCodeByCode($discountCodeRequest);
+            $orderData['total_price'] -= $discountCode->discount_amount;
+
+            if ($orderData['total_price'] < 0) {
+                throw new CannotApplyDiscountException();
+            }
+        }
+
         $order = new Order($orderData);
         $this->orderRepository->save($order);
         $this->orderItemService->createOrderItemsFromCartItems($cartItems, $order);
 
         event(new OrderCreated($order, $prepareEventData));
+
+        if ($discountCodeRequest) {
+            $this->discountCodeRepository->markDiscountCodeAsUsed($order, $discountCodeRequest);
+        }
 
         $orderContactInfo = $request->validated();
 

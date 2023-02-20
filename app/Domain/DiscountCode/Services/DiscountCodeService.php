@@ -28,8 +28,12 @@ class DiscountCodeService implements DiscountCodeServiceInterface
         return $this->discountCodeRepository->createDiscountCode($discountCodeData);
     }
 
-    public function applyDiscountCode(Order $order, string $code): void
+    public function validateDiscountCode(string $code): bool
     {
-        // TODO: Implement applyDiscountCode() method.
+        if (!is_null($this->discountCodeRepository->findDiscountCodeByStatusAndId($code))) {
+            return true;
+        }
+
+        return false;
     }
 }
